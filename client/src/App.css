@@ -1,0 +1,126 @@
+.App {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #fff;
+}
+
+
+.sidebar a {
+  color: white;
+}
+
+.content {
+  flex: 1;
+}
+  .navlogo{
+    display: flex;
+    justify-content: center;
+width: 80px;
+object-fit: contain;
+  }
+
+  .sidebarLogo {
+  width: 100px;
+  transition: 0.3s;
+}
+
+.navlogo{
+  width: 100px;
+}
+.userlogo{
+  font-size: 1.5rem;
+}
+.username{
+  font-size: 1.2rem;
+}
+  
+.logout{
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+/* .active-menu {
+  background-color: white;
+  color: #2B7CD3 !important;
+  border-radius: 5px;
+  padding: 6px 10px;
+  display: inline-block;
+} */
+
+.active-menu {
+  background-color: white;  
+  /* background-color: #3F53B6; */
+  border-radius: 4px;
+}
+
+.active-menu a {
+  color: #000 !important;
+  /* color: white !important; */
+  font-weight: 600;
+}
+
+.link{
+  color: white !important;
+}
+
+.baseTextColor{
+  color: #3F53B6;
+}
+
+.baseBgColor{
+  background-color: #3F53B6;
+}
+
+/* 🔽 Reduce table font size */
+.table {
+  font-size: 13px;
+}
+
+/* Header smaller */
+.table thead th {
+  font-size: 13px;
+  padding: 6px;
+}
+
+/* Table body */
+.table tbody td {
+  padding: 6px;
+}
+
+/* 🔽 Date input smaller */
+input[type="date"] {
+  font-size: 13px;
+  padding: 4px 6px;
+  height: 32px;
+}
+
+/* 🔽 Filter section spacing */
+.filter-small input,
+.filter-small select {
+  font-size: 13px;
+  height: 32px;
+  padding: 4px 6px;
+}
+
+/* Optional: badges smaller */
+.badge {
+  font-size: 11px;
+  padding: 4px 6px;
+}
+
+/* MOBILE */
+@media (max-width: 992px) {
+
+
+ .sidebarLogo {
+    width: 100px; 
+  }
+ 
+  .navlogo{
+  width: 80px;
+}
+
+}
+
+
+

@@ -1,0 +1,31 @@
+.box {
+  width: 25%;
+}
+.form-group{
+    font-weight: bold;
+}
+.form-group i {
+  color: #666;  
+  font-weight: bolder;
+}
+.form-group i:hover {
+  color: #000;
+  font-weight: bolder;
+}
+
+.error{
+  font-size: .85rem;
+}
+
+@media (max-width: 414px) {
+  .box {
+    width: 80%;
+  }
+
+.error{
+  font-size: .7rem;
+}
+  .logo{
+    height: 65px !important;
+  }
+}
