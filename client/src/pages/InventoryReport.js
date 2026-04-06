@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import API from "../axios";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+import '../style/report.css'
 
 const InventoryDashboard = () => {
   const [data, setData] = useState([]);
@@ -19,6 +20,19 @@ const InventoryDashboard = () => {
 
   return `${year}-${month}-${day}`;
 };
+
+const formatDateTime = (date) => {
+  if (!date) return "-";
+  return new Date(date).toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true
+  });
+};
+
 
   const [fromDate, setFromDate] = useState(formatDate(firstDay));
   const [toDate, setToDate] = useState(formatDate(today));
@@ -204,13 +218,13 @@ const handleUpdateStatus = async (row, status) => {
                   <td>{row.IssuedWt}</td>
                   <td>{row.StatusName || "-"}</td>
                   <td>
-                     {row.transferedDate ? new Date(row.transferedDate).toLocaleDateString("en-GB") : "-"}
+                     {row.transferedDate ? formatDateTime(row.transferedDate) : "-"}
                   </td>
                   <td>
-                     {row.receivedDate ? new Date(row.receivedDate).toLocaleDateString("en-GB") : "-"}
+                     {row.receivedDate ? formatDateTime(row.receivedDate) : "-"}
                   </td>
                   <td>
-                     {row.completedDate ? new Date(row.completedDate).toLocaleDateString("en-GB") : "-"}
+                     {row.completedDate ? formatDateTime(row.completedDate): "-"}
                   </td>
                   <td>{row.remarks ? row.remarks : "-"}</td>
                   <td>

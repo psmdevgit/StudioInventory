@@ -1,0 +1,44 @@
+/* 📱 Mobile View Fix */
+@media (max-width: 768px) {
+
+  /* 🔹 Reduce font size */
+  .container,
+  .card,
+  .form-control,
+  label,
+  h3,
+  h6,
+  textarea,
+  input,
+  select,
+  button {
+    font-size: 12px !important;
+  }
+
+  /* 🔹 Webcam layout change */
+  .webcam-container {
+    display: flex;
+    flex-direction: column !important;
+    align-items: center;
+  }
+
+  .webcam-container video {
+    width: 100% !important;
+    max-height: 300px !important;
+  }
+
+  /* 🔹 Buttons below webcam in one row */
+  .webcam-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .webcam-buttons .btn {
+    flex: 1;
+    padding: 6px;
+    font-size: 12px;
+  }
+}

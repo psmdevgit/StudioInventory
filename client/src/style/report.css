@@ -1,0 +1,54 @@
+/* Mobile adjustments: keep filters in one row */
+@media (max-width: 768px) {
+  .row.mb-3 {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    align-items: center;
+  }
+
+  .row.mb-3 .col-md-4,
+  .row.mb-3 .col-md-2,
+  .row.mb-3 .col-md-3 {
+    flex: 1 1 auto; /* grow/shrink as needed */
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 0; /* remove extra spacing */
+  }
+
+  .row.mb-3 label {
+    font-size: 12px;
+    margin-bottom: 0;
+  }
+
+  .row.mb-3 input,
+  .row.mb-3 select {
+    flex: 1; /* take available space */
+    font-size: 12px;
+    padding: 4px 6px;
+  }
+
+  .row.mb-3 .btn {
+    padding: 4px 8px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+    .table-responsive {
+    overflow-x: auto; /* enable horizontal scroll */
+  }
+
+  .table th,
+  .table td {
+    white-space: nowrap; /* prevent text wrapping */
+    font-size: .6rem !important;     /* optional: smaller font for mobile */
+    padding: 4px 6px;    /* optional: smaller padding */
+  }
+
+  .table thead th {
+    background-color: #666;
+    color: #fff;
+  }
+
+}

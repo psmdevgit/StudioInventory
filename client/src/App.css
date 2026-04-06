@@ -119,7 +119,22 @@ input[type="date"] {
   .navlogo{
   width: 80px;
 }
+.logout{
+  font-size: 1.5rem;
+}
+.username{
+   font-size: .9rem;
+}
+ .d-flex.gap-2.mb-2 {
+    justify-content: center; /* center buttons */
+    margin-bottom: -10px  !important;
+  }
 
+  .d-flex.gap-2.mb-2 .btn {
+    padding: 4px 10px !important; /* reduce size */
+    font-size: 12px;              /* smaller text */
+    flex: 1;                      /* equal width */
+  }
 }
 
 

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Entry from "./Entry";
 import InventoryReport from "./InventoryReport";
+import "../App.css"
 
 const UserPage = () => {
   const [activeTab, setActiveTab] = useState("entry");

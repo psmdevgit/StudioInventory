@@ -22,7 +22,7 @@ function Navbar() {
   },[user])
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-white bg-whit shadow" style={{
+    <nav className="navbar navbar-expand-lg  navbar-white bg-whit shadow" style={{
       // background:'#2B7CD3'      
         background:"#9FCB98",
         position: "sticky",
@@ -30,10 +30,10 @@ function Navbar() {
         zIndex: 1050
         // background:"#0F2470"
       }}>
-      <div className="container-fluid d-flex row">
+      <div className=" d-flex row w-100 m-auto">
 
-         <div className=" col-md-4 d-flex align-items-center justify-content-start ms-lg-3 col-4" >
-          <i className="bi bi-person-circle userlogo me-lg-2 text-dark"></i>
+         <div className=" col-md-4 d-flex align-items-center justify-content-start  col-4" >
+          <i className="bi bi-person-circle userlogo ms-lg-4 me-2 text-dark"></i>
           <span className="fw-semibold text-black username">{userName ? userName : "User"}</span>
         </div>
 
@@ -42,9 +42,9 @@ function Navbar() {
           <img src={logo} className="navlogo"></img>
         </div>
 
-        <div className="col-md-4  d-flex align-items-center justify-content-end col-4">
+        <div className="col-md-4  d-flex align-items-center justify-content-end col-4 ">
           {/* <span className="fw-semibold text-black me-lg-3 logout" onClick={()=> navigate("/")}>Logout</span> */}
-          <i class="bi bi-box-arrow-right me-lg-3 logout" onClick={()=> handlelogout()}></i>
+          <i class="bi bi-box-arrow-right  pe-lg-4 logout" onClick={()=> handlelogout()}></i>
 
         </div>
 

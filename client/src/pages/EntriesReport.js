@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import API from "../axios";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+import '../style/report.css'
 
 const EntriesReport = () => {
   const [data, setData] = useState([]);
@@ -13,6 +14,17 @@ const EntriesReport = () => {
   
     const [statusFilter, setStatusFilter] = useState(""); // "" = all statuses
 
+const formatDateTime = (date) => {
+  if (!date) return "-";
+  return new Date(date).toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true
+  });
+};
 
   const formatDate = (d) => {
   const year = d.getFullYear();
@@ -85,10 +97,10 @@ const handleUpdateStatus = async (row, status) => {
 };
 
   return (
-    <div className="container-fluid mt-4">
+    <div className="container-fluid mt-lg-4 mt-2">
 
       {/* FILTER */}
-      <div className="row mb-3">
+      <div className="row mb-3  ">
         <div className="col-md-4 d-flex gap-2 align-items-center">
           <label>From:</label>
           <input
@@ -133,7 +145,7 @@ const handleUpdateStatus = async (row, status) => {
 
       {/* TABLE */}
       <div
-        className="table-responsive"
+        className="table-responsive  "
         style={{ maxHeight: "650px", overflowY: "auto" }}
       >
         <table className="table table-bordered table-striped text-center">
@@ -204,13 +216,13 @@ const handleUpdateStatus = async (row, status) => {
                   <td>{row.IssuedWt}</td>
                   <td>{row.StatusName || "-"}</td>
                   <td>
-                     {row.transferedDate ? new Date(row.transferedDate).toLocaleDateString("en-GB") : "-"}
+                     {row.transferedDate ? formatDateTime(row.transferedDate) : "-"}
                   </td>
                   <td>
-                     {row.receivedDate ? new Date(row.receivedDate).toLocaleDateString("en-GB") : "-"}
+                     {row.receivedDate ? formatDateTime(row.receivedDate) : "-"}
                   </td>
                   <td>
-                     {row.completedDate ? new Date(row.completedDate).toLocaleDateString("en-GB") : "-"}
+                     {row.completedDate ? formatDateTime(row.completedDate) : "-"}
                   </td>
                   <td>{row.remarks ? row.remarks : "-"}</td>
                   <td>
