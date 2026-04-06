@@ -127,7 +127,7 @@ input[type="date"] {
 }
  .d-flex.gap-2.mb-2 {
     justify-content: center; /* center buttons */
-    margin-bottom: -10px  !important;
+    margin-bottom: -1 0px  !important;
   }
 
   .d-flex.gap-2.mb-2 .btn {
