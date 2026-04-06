@@ -3,13 +3,33 @@ import API from "../axios";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import '../style/report.css'
+import { useRef } from "react";
 
 const EntriesReport = () => {
   const [data, setData] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
 
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectRemarks, setRejectRemarks] = useState("");
+  const [selectedRow, setSelectedRow] = useState(null);
+    const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+
   const today = new Date();
   const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+
+  const toastTimeout = useRef(null);
+  
+  const showToast = (message, type = "success") => {
+    if (toastTimeout.current) {
+      clearTimeout(toastTimeout.current);
+    }
+  
+    setToast({ show: true, message, type });
+  
+    toastTimeout.current = setTimeout(() => {
+      setToast({ show: false, message: "", type: "success" });
+    }, 3000);
+  };
 
   
     const [statusFilter, setStatusFilter] = useState(""); // "" = all statuses
@@ -56,7 +76,8 @@ const formatDateTime = (date) => {
       setData(res.data);
     } catch (err) {
       console.error(err);
-      setData([]);
+      setData([]);      
+      showToast("Failed to load data", "error");
     } finally {
       setLoading(false);
     }
@@ -72,6 +93,7 @@ const formatDateTime = (date) => {
       CreatedDate: row.CreatedDate,
       CreatedBy: row.createdBy,
       Remarks: row.remarks,
+      Reject_Remarks: row.rejectRemark,
       TranferedDate: row.transferedDate,
       Received_Rejected_Date: row.receivedDate,
       CompletedDate: row.completedDate
@@ -84,20 +106,49 @@ const formatDateTime = (date) => {
     const buffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
     saveAs(new Blob([buffer]), "Inventory.xlsx");
   };
-const handleUpdateStatus = async (row, status) => {
+// const handleUpdateStatus = async (row, status) => {
+//   try {
+//     await API.post(`/updateStatus`, {
+//       id: row.id,
+//       status: status, // e.g., 'TRANSFER', 'COMPLETE', 'RECEIVE', 'REJECT'
+//     });
+//     loadData(); // refresh table
+//   } catch (err) {
+//     console.error(err);
+//   }
+// };
+
+const handleUpdateStatus = async (row, status, remarks = "") => {
   try {
-    await API.post(`/updateStatus`, {
+    const res = await API.post(`/updateStatus`, {
       id: row.id,
-      status: status, // e.g., 'TRANSFER', 'COMPLETE', 'RECEIVE', 'REJECT'
+      status: status,
+      remarks: remarks, // ✅ send remarks
     });
-    loadData(); // refresh table
+
+    showToast(res.data.message || "Status updated", "success");
+
+    loadData();
   } catch (err) {
     console.error(err);
+    if (err.response?.data?.message) {
+        showToast(err.response.data.message, "error");
+      } else {
+        showToast("Something went wrong", "error");
+      }
+
   }
 };
 
   return (
     <div className="container-fluid mt-lg-4 mt-2">
+
+        {toast.show && (
+                  <div className={`toast-box ${toast.type}`}>
+                    {toast.message}
+                  </div>
+        )}
+        
 
       {/* FILTER */}
       <div className="row mb-3  ">
@@ -162,6 +213,7 @@ const handleUpdateStatus = async (row, status) => {
                 "Received / Reject",
                 "Completed",
                 "Remarks",
+                "Reject Remark",
                 "Action",
               ].map((h, i) => (
                 <th
@@ -225,6 +277,7 @@ const handleUpdateStatus = async (row, status) => {
                      {row.completedDate ? formatDateTime(row.completedDate) : "-"}
                   </td>
                   <td>{row.remarks ? row.remarks : "-"}</td>
+                  <td>{row.status == 2 ? row.rejectRemark : "-" }</td>
                   <td>
                     {row.status == 0 && (
                       <span className="badge bg-warning px-lg-2 text-dark">
@@ -242,11 +295,22 @@ const handleUpdateStatus = async (row, status) => {
                             >
                                 Receive
                             </button>
-                            <button
+                            {/* <button
                                 className="btn btn-danger btn-sm"
                                 onClick={() => handleUpdateStatus(row, 'REJECT')}
                             >
                                 Reject
+                            </button> */}
+
+                            <button
+                              className="btn btn-danger btn-sm"
+                              onClick={() => {
+                                setSelectedRow(row);
+                                setRejectRemarks("");
+                                setShowRejectModal(true);
+                              }}
+                            >
+                              Reject
                             </button>
 
                         </div>
@@ -343,6 +407,73 @@ const handleUpdateStatus = async (row, status) => {
     className="modal-backdrop fade show"
     onClick={() => setSelectedImage(null)}
   ></div>
+)}
+
+{showRejectModal && (
+  <>
+    <div
+      className="modal fade show"
+      style={{ display: "block", backgroundColor: "rgba(0,0,0,0.7)" }}
+    >
+      <div className="modal-dialog modal-dialog-centered">
+        <div className="modal-content">
+
+          {/* HEADER */}
+          <div className="modal-header">
+            <h5 className="modal-title">Reject Remarks</h5>
+            <button
+              type="button"
+              className="btn-close"
+              onClick={() => setShowRejectModal(false)}
+            ></button>
+          </div>
+
+          {/* BODY */}
+          <div className="modal-body">
+            <textarea
+              className="form-control"
+              rows="4"
+              placeholder="Enter reject remarks..."
+              value={rejectRemarks}
+              onChange={(e) => setRejectRemarks(e.target.value)}
+            />
+          </div>
+
+          {/* FOOTER */}
+          <div className="modal-footer">
+            <button
+              className="btn btn-secondary"
+              onClick={() => setShowRejectModal(false)}
+            >
+              Cancel
+            </button>
+
+            <button
+              className="btn btn-danger"
+              onClick={() => {
+                if (!rejectRemarks.trim()) {
+                  alert("Please enter reject remarks");
+                  return;
+                }
+
+                handleUpdateStatus(selectedRow, "REJECT", rejectRemarks);
+                setShowRejectModal(false);
+              }}
+            >
+              Submit Reject
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    {/* BACKDROP */}
+    <div
+      className="modal-backdrop fade show"
+      onClick={() => setShowRejectModal(false)}
+    ></div>
+  </>
 )}
 
       </div>

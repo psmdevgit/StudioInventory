@@ -3,12 +3,15 @@ import API from "../axios";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import '../style/report.css'
+import { useRef } from "react";
+
 
 const InventoryDashboard = () => {
   const [data, setData] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
 
   const [statusFilter, setStatusFilter] = useState(""); // "" = all statuses
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
 
   const today = new Date();
   const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -20,6 +23,21 @@ const InventoryDashboard = () => {
 
   return `${year}-${month}-${day}`;
 };
+
+const toastTimeout = useRef(null);
+
+const showToast = (message, type = "success") => {
+  if (toastTimeout.current) {
+    clearTimeout(toastTimeout.current);
+  }
+
+  setToast({ show: true, message, type });
+
+  toastTimeout.current = setTimeout(() => {
+    setToast({ show: false, message: "", type: "success" });
+  }, 3000);
+};
+
 
 const formatDateTime = (date) => {
   if (!date) return "-";
@@ -54,6 +72,7 @@ const formatDateTime = (date) => {
     } catch (err) {
       console.error(err);
       setData([]);
+      showToast("Failed to load data", "error");
     } finally {
       setLoading(false);
     }
@@ -74,6 +93,7 @@ const formatDateTime = (date) => {
       CreatedDate: row.CreatedDate,
       CreatedBy: row.createdBy,
       Remarks: row.remarks,
+      Reject_Remarks: row.rejectRemark,
       TranferedDate: row.transferedDate,
       Received_Rejected_Date: row.receivedDate,
       CompletedDate: row.completedDate
@@ -87,23 +107,54 @@ const formatDateTime = (date) => {
     saveAs(new Blob([buffer]), "Inventory.xlsx");
   };
 
-const handleUpdateStatus = async (row, status) => {
-  try {
-    await API.post(`/updateStatus`, {
-      id: row.id,
-      status: status, // e.g., 'TRANSFER', 'COMPLETE', 'RECEIVE', 'REJECT'
-    });
-    loadData(); // refresh table
-  } catch (err) {
-    console.error(err);
-  }
-};
+// const handleUpdateStatus = async (row, status) => {
+//   try {
+//     await API.post(`/updateStatus`, {
+//       id: row.id,
+//       status: status, // e.g., 'TRANSFER', 'COMPLETE', 'RECEIVE', 'REJECT'
+//     });
+//     loadData(); // refresh table
+//   } catch (err) {
+//     console.error(err);
+//   }
+// };
+
+  const handleUpdateStatus = async (row, status) => {
+    try {
+      const res = await API.post(`/updateStatus`, {
+        id: row.id,
+        status: status,
+      });
+
+      showToast(res.data.message || "Status updated", "success");
+
+      loadData();
+    } catch (err) {
+      console.error(err);
+
+      if (err.response?.data?.message) {
+        showToast(err.response.data.message, "error");
+      } else {
+        showToast("Something went wrong", "error");
+      }
+    }
+  };
+
 
   return (
     <div className="container-fluid mt-4">
 
+
+        {toast.show && (
+                  <div className={`toast-box ${toast.type}`}>
+                    {toast.message}
+                  </div>
+        )}
+
       {/* FILTER */}
       <div className="row mb-3">
+       
+
         <div className="col-md-4 d-flex gap-2 align-items-center">
           <label>From:</label>
           <input
@@ -164,6 +215,7 @@ const handleUpdateStatus = async (row, status) => {
                 "Received /  Reject",
                 "Completed",
                 "Remarks",
+                "Reject Remark",
                 "Action",
               ].map((h, i) => (
                 <th
@@ -227,6 +279,9 @@ const handleUpdateStatus = async (row, status) => {
                      {row.completedDate ? formatDateTime(row.completedDate): "-"}
                   </td>
                   <td>{row.remarks ? row.remarks : "-"}</td>
+                   <td>
+                    {row.status == 2 ? row.rejectRemark : "-" }
+                  </td>
                   <td>
                     {row.status == 0 && (
                       <button

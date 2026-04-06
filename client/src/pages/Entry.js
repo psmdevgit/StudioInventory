@@ -1,26 +1,44 @@
-// // ...rest of your imports
-// import React, { useEffect, useState } from "react";
+// import React, { useEffect, useState, useRef } from "react";
 // import "../style/Entry.css";
 // import API from "../axios";
 // import Select from "react-select";
-
+// import Webcam from "react-webcam";
 
 // const Entry = () => {
 //   const [token, setToken] = useState("");
 //   const [products, setProducts] = useState([]);
+
+//   const [toast, setToast] = useState({
+//   show: false,
+//   message: "",
+//   type: "success", // success | error
+// });
+
+// const showToast = (message, type = "success") => {
+//   setToast({ show: true, message, type });
+
+//   setTimeout(() => {
+//     setToast({ show: false, message: "", type: "success" });
+//   }, 3000); // auto hide after 3 sec
+// };
+
 //   const [form, setForm] = useState({
 //     product: "",
 //     weight: "",
 //     date: new Date().toISOString().split("T")[0],
-//     remark: "", // ✅ added remark field
+//     remark: "",
+//     newProduct: ""
 //   });
 
 //   const user = JSON.parse(localStorage.getItem("user") || "{}");
 //   const userName = user?.empName || "";
 
-
 //   const [image, setImage] = useState(null);
 //   const [preview, setPreview] = useState(null);
+
+//   // Webcam
+//   const [showCamera, setShowCamera] = useState(false);
+//   const webcamRef = useRef(null);
 
 //   useEffect(() => {
 //     getToken();
@@ -41,57 +59,136 @@
 //     setForm({ ...form, [e.target.name]: e.target.value });
 //   };
 
+//   // 📁 File Upload
+//   // const handleImage = (e) => {
+//   //   const file = e.target.files[0];
+//   //   if (!file) return;
+
+//   //   setImage(file);
+
+//   //   const reader = new FileReader();
+//   //   reader.onloadend = () => {
+//   //     setPreview(reader.result);
+//   //   };
+//   //   reader.readAsDataURL(file);
+//   // };
+
 //   const handleImage = (e) => {
-//     const file = e.target.files[0];
-//     if (!file) return;
+//   const file = e.target.files[0];
+//   if (!file) return;
 
-//     setImage(file);
+//   // ❗ CLOSE CAMERA when file selected
+//   setShowCamera(false);
 
-//     const reader = new FileReader();
-//     reader.onloadend = () => {
-//       setPreview(reader.result);
-//     };
-//     reader.readAsDataURL(file);
+//   setImage(file);
+
+//   const reader = new FileReader();
+//   reader.onloadend = () => {
+//     setPreview(reader.result);
 //   };
+//   reader.readAsDataURL(file);
+// };
+
+//   // 🎥 Webcam Capture
+//   const captureImage = () => {
+//     const imageSrc = webcamRef.current.getScreenshot();
+//     setPreview(imageSrc);
+
+//     fetch(imageSrc)
+//       .then((res) => res.blob())
+//       .then((blob) => {
+//         const file = new File([blob], "capture.jpg", {
+//           type: "image/jpeg",
+//         });
+//         setImage(file);
+//       });
+
+//     setShowCamera(false);
+//   };
+
+//   // ➕ Add Product
+//   // const handleAddProduct = async () => {
+//   //   if (!form.newProduct || form.newProduct.trim() === "") {
+//   //     alert("Enter product name");
+//   //     return;
+//   //   }
+
+//   //   const confirmAdd = window.confirm(
+//   //     `Add "${form.newProduct.trim()}" as new product?`
+//   //   );
+//   //   if (!confirmAdd) return;
+
+//   //   try {
+//   //     const productName = form.newProduct.trim().toUpperCase();
+
+//   //     await API.post("/addProduct", { name: productName });
+
+//   //     alert("Product added successfully");
+//   //     getProducts();
+
+//   //     setForm({
+//   //       ...form,
+//   //       product: productName,
+//   //       newProduct: ""
+//   //     });
+//   //   } catch (err) {
+//   //     console.error(err);
+//   //     alert("Error adding product");
+//   //   }
+//   // };
 
 //   const handleAddProduct = async () => {
 //   if (!form.newProduct || form.newProduct.trim() === "") {
-//     alert("Enter product name");
+//     // alert("Enter product name");
+//     showToast("Enter product name", "success");
 //     return;
 //   }
 
-//    const confirmAdd = window.confirm(
-//     `Are you sure you want to add "${form.newProduct.trim()}" as a new product?`
+//   const confirmAdd = window.confirm(
+//     `Add "${form.newProduct.trim()}" as new product?`
 //   );
-  
-//   if (!confirmAdd) return; // user cancelled
-  
+//   if (!confirmAdd) return;
+
 //   try {
 //     const productName = form.newProduct.trim().toUpperCase();
+
+//     const res = await API.post("/addProduct", { name: productName });
+
+//     // alert(res.data.message);
     
-//     await API.post("/addProduct", { name: productName });
-    
-//     alert("Product added successfully");
-    
-//     // Refresh product list
+//     showToast(res.data.message, "success");
+
 //     getProducts();
-    
-//     // Select the new product automatically
-//     setForm({ ...form, product: productName, newProduct: "" });
+
+//     setForm({
+//       ...form,
+//       product: productName,
+//       newProduct: ""
+//     });
+
 //   } catch (err) {
-//     console.error(err);
-//     alert("Error adding product");
+//     // ✅ Show backend message
+//     if (err.response && err.response.data.message) {
+//       alert(err.response.data.message);
+//     } else {
+//       // alert("Error adding product");
+      
+//     showToast("Error adding product", "error");
+//     }
 //   }
 // };
 
+//   // 🚀 Submit
 //   const handleSubmit = async () => {
 //     if (!form.product || !form.weight) {
-//       alert("Fill all required fields");
+//       // alert("Fill all required fields");
+      
+//     showToast("Fill all required fields", "success");
 //       return;
 //     }
 
 //     if (!image) {
-//       alert("Please select or capture an image before submitting");
+//       alert("Please capture or upload an image");
 //       return;
 //     }
 
@@ -100,7 +197,7 @@
 //     formData.append("product", form.product);
 //     formData.append("weight", form.weight);
 //     formData.append("date", form.date);
-//     formData.append("remark", form.remark); // ✅ send remark
+//     formData.append("remark", form.remark);
 //     formData.append("image", image);
 //     formData.append("user", userName);
 
@@ -109,21 +206,28 @@
 //         headers: { "Content-Type": "multipart/form-data" },
 //       });
 
-//       alert("Saved Successfully");
+//       // alert("Saved Successfully");
+      
+//       showToast("Saved Successfully", "success");
 
 //       setForm({
 //         product: "",
 //         weight: "",
 //         date: new Date().toISOString().split("T")[0],
 //         remark: "",
+//         newProduct: ""
 //       });
+
 //       setImage(null);
 //       setPreview(null);
-//       getToken(); // next token
+//       getToken();
+
 //       window.location.reload();
 //     } catch (err) {
 //       console.error(err);
-//       alert("Error saving entry. Try again!");
+//       // alert("Error saving entry");
+      
+//       showToast("Error saving entry", "error");
 //     }
 //   };
 
@@ -131,79 +235,63 @@
 //     <div className="container mt-4">
 //       <div className="card shadow-lg p-4 rounded-4">
 //         <h3 className="text-center mb-4">Product Entry</h3>
-
+// {toast.show && (
+//   <div
+//     className={`toast-box ${toast.type}`}
+//   >
+//     {toast.message}
+//   </div>
+// )} 
 //         <div className="row">
-//           {/* LEFT FORM */}
+//           {/* LEFT */}
 //           <div className="col-md-6">
-//             {/* Token */}
 //             <div className="mb-3">
 //               <label>Transfer ID</label>
 //               <input className="form-control" value={token} readOnly />
 //             </div>
 
 //             {/* Product */}
-//             {/* <div className="mb-3">
-//               <label>Product</label>
-//               <select
-//                 name="product"
-//                 className="form-control"
-//                 onChange={handleChange}
-//                 value={form.product}
-//               >
-//                 <option value="">Select Product</option>
-//                 {products.map((p, i) => (
-//                   <option key={i} value={p.counter}>
-//                     {p.counter}
-//                   </option>
-//                 ))}
-//               </select>
-//             </div> */}
-
-
 //             <div className="mb-3">
 //               <label>Product</label>
-//               {/* <select
-//                 name="product"
-//                 className="form-control"
-//                 onChange={handleChange}
-//                 value={form.product}
-//               >
-//                 <option value="">Select Product</option>
-//                 {products.map((p, i) => (
-//                   <option key={i} value={p.counter}>
-//                     {p.counter}
-//                   </option>
-//                 ))}
-//                 <option value="__ADD_NEW__">+ Add New Product</option>
-//               </select> */}
 
 //               <Select
+//                 // options={[
+//                 //   ...products.map((p) => ({
+//                 //     value: p.counter,
+//                 //     label: p.counter,
+//                 //   })),
+//                 //   { value: "__ADD_NEW__", label: "+ Add New Product" },
+//                 // ]}
+
 //                 options={[
-//                   ...products.map(p => ({ value: p.counter, label: p.counter })),
-//                   { value: "__ADD_NEW__", label: "+ Add New Product" }
-//                 ]}
+//                       { value: "Add New Product", label: "Add New Product" },
+//                       ...products.map((p) => ({
+//                         value: p.counter,
+//                         label: p.counter,
+//                       })),
+//                     ]}
+
 //                 value={
 //                   form.product
 //                     ? { value: form.product, label: form.product }
 //                     : null
 //                 }
-//                 onChange={(option) => setForm({ ...form, product: option.value })}
-//                 isSearchable
+//                 onChange={(option) =>
+//                   setForm({ ...form, product: option.value })
+//                 }
 //               />
-
 //             </div>
 
-//             {/* Input field for new product */}
-//             {form.product === "__ADD_NEW__" && (
+//             {/* New Product */}
+//             {form.product === "Add New Product" && (
 //               <div className="mb-3">
-//                 <label>New Product Name</label>
+//                 <label>New Product</label>
 //                 <input
 //                   type="text"
 //                   name="newProduct"
 //                   className="form-control"
-//                   value={form.newProduct || ""}
+//                   value={form.newProduct}
 //                   onChange={handleChange}
-//                   placeholder="Enter new product name"
 //                 />
 //                 <button
 //                   className="btn btn-success mt-2"
@@ -214,7 +302,6 @@
 //               </div>
 //             )}
 
-
 //             {/* Weight */}
 //             <div className="mb-3">
 //               <label>Issued Weight</label>
@@ -222,8 +309,8 @@
 //                 type="number"
 //                 name="weight"
 //                 className="form-control"
-//                 onChange={handleChange}
 //                 value={form.weight}
+//                 onChange={handleChange}
 //               />
 //             </div>
 
@@ -232,7 +319,6 @@
 //               <label>Date</label>
 //               <input
 //                 type="date"
-//                 name="date"
 //                 className="form-control"
 //                 value={form.date}
 //                 readOnly
@@ -245,78 +331,210 @@
 //               <textarea
 //                 name="remark"
 //                 className="form-control"
-//                 rows={3}
-//                 placeholder="Enter remark or note..."
 //                 value={form.remark}
 //                 onChange={handleChange}
-//               ></textarea>
+//               />
 //             </div>
 
-//             {/* Image Upload */}
+           
+
+//             {/* 🎥 Camera */}
 //             {/* <div className="mb-3">
-//               <label>Upload / Capture Image</label>
-//               <input
-//                 type="file"
-//                 accept="image/*"
-//                 capture="environment"
-//                 className="form-control"
-//                 onChange={handleImage}
-//               />
+//               <label>Camera Capture</label>
+
+//               {!showCamera ? (
+//                 <button
+//                   className="btn btn-secondary w-100"
+//                   onClick={() => setShowCamera(true)}
+//                 >
+//                   Open Camera
+//                 </button>
+//               ) : (
+//                 <>
+//                   <Webcam
+//                     ref={webcamRef}
+//                     screenshotFormat="image/jpeg"
+//                     style={{ width: "100%" }}
+//                   />
+
+//                   <button
+//                     className="btn btn-success mt-2 w-100"
+//                     onClick={captureImage}
+//                   >
+//                     Capture
+//                   </button>
+
+//                   <button
+//                     className="btn btn-danger mt-2 w-100"
+//                     onClick={() => setShowCamera(false)}
+//                   >
+//                     Close
+//                   </button>
+//                 </>
+//               )
+//               }
 //             </div> */}
 
-//             {/* Image Upload */}
+//             {/* <div className="mb-3">
+//               <label>Camera</label>
+//               <button
+//                 className="btn btn-secondary w-100"
+//                 // onClick={() => setShowCamera(true)}
+//                 onClick={() => {
+//                   setShowCamera(true);
+//                   setPreview(null);
+//                   setImage(null);
+//                 }}
+//               >
+//                 Open Camera
+//                 <i class="bi bi-camera-fill"></i>
+//               </button>
+//             </div> */}
+
+//              {/* 📁 Upload */}
 //             <div className="mb-3">
-//               <label>Upload / Capture Image</label>
-//               <input
-//                 type="file"
-//                 accept="image/*"
-//                 capture="environment"
-//                 className="form-control"
-//                 onChange={handleImage}
-//               />
-//               {/* Display file name if selected */}
-//               {/* {image && (
-//                 <small className="text-muted d-block mt-1">
-//                   Selected File: {image.name}
-//                 </small>
-//               )} */}
+//               <label className="mb-1">Upload Image</label>
 
-//               {image && (
-//                 <small className="text-muted d-block mt-1">
-//                   Selected File: {image.name.length > 30 
-//                     ? image.name.slice(0, 30) + "..." 
-//                     : image.name}
-//                 </small>
-//               )}
+//               <div className="d-flex gap-2 justify-content-center align-items-center">
 
+//               <button
+//                   className="btn btn-sm p-0"
+//                   // onClick={() => setShowCamera(true)}
+//                   onClick={() => {
+//                     setShowCamera(true);
+//                     setPreview(null);
+//                     setImage(null);
+//                   }}
+//                 >
+                  
+//                   <i class="bi bi-camera-fill text-dark camIcon"></i>
+//               </button>
+
+//                   <input
+//                     type="file"
+//                     accept="image/*"
+//                     className="form-control"
+//                     onChange={handleImage}
+//                   />
+
+//               </div>
+              
 //             </div>
-
-
             
 //           </div>
 
-//           {/* RIGHT PREVIEW */}
-//           <div className="col-md-6 text-center">
-//             <h6>Image Preview</h6>
+//           {/* RIGHT */}
+//           {/* <div className="col-md-6 text-center">
+//             <h6>Preview</h6>
+
 //             {preview ? (
 //               <img
 //                 src={preview}
 //                 alt="preview"
+//                 style={{ width: "100%", maxHeight: "300px" }}
+//               />
+//             ) : (
+//               <div className="border p-5">No Image</div>
+//             )}
+
+//             <button
+//               className="btn btn-primary w-100 mt-3"
+//               onClick={handleSubmit}
+//             >
+//               Submit
+//             </button>
+//           </div> */}
+
+//           <div className="col-md-6 text-center">
+//             <h6>Preview</h6>
+
+//             {/* 🎥 CAMERA VIEW */}
+//            {/* {showCamera ? (
+//               <div className="d-flex align-items-start gap-3">
+                
+//                 <Webcam
+//                   ref={webcamRef}
+//                   screenshotFormat="image/jpeg"
+//                   style={{
+//                     width: "80%",
+//                     maxHeight: "420px",
+//                     objectFit: "cover",
+//                     borderRadius: "10px"
+//                   }}
+//                 />
+
+//                 <div className="d-flex flex-column justify-content-start w-40">
+//                   <button
+//                     className="btn btn-success mb-2"
+//                     onClick={captureImage}
+//                   >
+//                     Capture
+//                   </button>
+
+//                   <button
+//                     className="btn btn-danger"
+//                     onClick={() => setShowCamera(false)}
+//                   >
+//                     Close
+//                   </button>
+//                 </div>
+
+//               </div>
+//             ) : preview ? ( */}
+//             {showCamera ? (
+//   <div className="webcam-container">
+
+//     {/* 🎥 Webcam */}
+//     <Webcam
+//       ref={webcamRef}
+//       screenshotFormat="image/jpeg"
+//     />
+
+//     {/* 🎛️ Buttons BELOW */}
+//     <div className="webcam-buttons">
+//       <button
+//         className="btn btn-success"
+//         onClick={captureImage}
+//       >
+//         Capture
+//       </button>
+
+//       <button
+//         className="btn btn-danger"
+//         onClick={() => setShowCamera(false)}
+//       >
+//         Close
+//       </button>
+//     </div>
+
+//   </div>
+// ) : preview ? (
+//               /* 🖼️ IMAGE PREVIEW */
+//               <img
+//                 src={preview}
+//                 alt="preview"
 //                 style={{
-//                   width: "100%",
-//                   maxHeight: "300px",
-//                   objectFit: "contain",
+//                   width: "80%",
+//                   maxHeight: "420px",
+//                   objectFit: "cover",
 //                 }}
 //               />
 //             ) : (
-//               <div className="border p-5 text-muted">No Image Selected</div>
+//               /* EMPTY STATE */
+//               <div className="border p-5 text-muted">
+//                 No Image Selected
+//               </div>
 //             )}
-//             <button className="btn btn-primary w-100 mt-lg-5 mt-2" onClick={handleSubmit}>
+
+//             <button
+//               className="btn btn-primary w-100 mt-3"
+//               onClick={handleSubmit}
+//             >
 //               Submit
 //             </button>
-
 //           </div>
-          
+
+
 //         </div>
 //       </div>
 //     </div>
@@ -335,12 +553,33 @@ const Entry = () => {
   const [token, setToken] = useState("");
   const [products, setProducts] = useState([]);
 
+  // ✅ Toast State
+  const [toast, setToast] = useState({
+    show: false,
+    message: "",
+    type: "success",
+  });
+
+  const toastTimeout = useRef(null);
+
+  const showToast = (message, type = "success") => {
+    if (toastTimeout.current) {
+      clearTimeout(toastTimeout.current);
+    }
+
+    setToast({ show: true, message, type });
+
+    toastTimeout.current = setTimeout(() => {
+      setToast({ show: false, message: "", type: "success" });
+    }, 2500);
+  };
+
   const [form, setForm] = useState({
     product: "",
     weight: "",
     date: new Date().toISOString().split("T")[0],
     remark: "",
-    newProduct: ""
+    newProduct: "",
   });
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -349,7 +588,6 @@ const Entry = () => {
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
 
-  // Webcam
   const [showCamera, setShowCamera] = useState(false);
   const webcamRef = useRef(null);
 
@@ -372,37 +610,22 @@ const Entry = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // 📁 File Upload
-  // const handleImage = (e) => {
-  //   const file = e.target.files[0];
-  //   if (!file) return;
-
-  //   setImage(file);
-
-  //   const reader = new FileReader();
-  //   reader.onloadend = () => {
-  //     setPreview(reader.result);
-  //   };
-  //   reader.readAsDataURL(file);
-  // };
-
+  // 📁 Upload Image
   const handleImage = (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+    const file = e.target.files[0];
+    if (!file) return;
 
-  // ❗ CLOSE CAMERA when file selected
-  setShowCamera(false);
+    setShowCamera(false);
+    setImage(file);
 
-  setImage(file);
-
-  const reader = new FileReader();
-  reader.onloadend = () => {
-    setPreview(reader.result);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreview(reader.result);
+    };
+    reader.readAsDataURL(file);
   };
-  reader.readAsDataURL(file);
-};
 
-  // 🎥 Webcam Capture
+  // 🎥 Capture Image
   const captureImage = () => {
     const imageSrc = webcamRef.current.getScreenshot();
     setPreview(imageSrc);
@@ -422,43 +645,47 @@ const Entry = () => {
   // ➕ Add Product
   const handleAddProduct = async () => {
     if (!form.newProduct || form.newProduct.trim() === "") {
-      alert("Enter product name");
+      showToast("Enter product name", "error");
       return;
     }
 
-    const confirmAdd = window.confirm(
-      `Add "${form.newProduct.trim()}" as new product?`
-    );
-    if (!confirmAdd) return;
+    // const confirmAdd = window.confirm(
+    //   `Add "${form.newProduct.trim()}" as new product?`
+    // );
+    // if (!confirmAdd) return;
 
     try {
       const productName = form.newProduct.trim().toUpperCase();
 
-      await API.post("/addProduct", { name: productName });
+      const res = await API.post("/addProduct", { name: productName });
 
-      alert("Product added successfully");
+      showToast(res.data.message, "success");
+
       getProducts();
 
       setForm({
         ...form,
         product: productName,
-        newProduct: ""
+        newProduct: "",
       });
     } catch (err) {
-      console.error(err);
-      alert("Error adding product");
+      if (err.response && err.response.data.message) {
+        showToast(err.response.data.message, "error");
+      } else {
+        showToast("Error adding product", "error");
+      }
     }
   };
 
   // 🚀 Submit
   const handleSubmit = async () => {
     if (!form.product || !form.weight) {
-      alert("Fill all required fields");
+      showToast("Fill all required fields", "error");
       return;
     }
 
     if (!image) {
-      alert("Please capture or upload an image");
+      showToast("Please capture or upload an image", "error");
       return;
     }
 
@@ -476,24 +703,23 @@ const Entry = () => {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      alert("Saved Successfully");
+      showToast("Saved Successfully", "success");
 
       setForm({
         product: "",
         weight: "",
         date: new Date().toISOString().split("T")[0],
         remark: "",
-        newProduct: ""
+        newProduct: "",
       });
 
       setImage(null);
       setPreview(null);
       getToken();
 
-      window.location.reload();
     } catch (err) {
       console.error(err);
-      alert("Error saving entry");
+      showToast("Error saving entry", "error");
     }
   };
 
@@ -501,6 +727,13 @@ const Entry = () => {
     <div className="container mt-4">
       <div className="card shadow-lg p-4 rounded-4">
         <h3 className="text-center mb-4">Product Entry</h3>
+
+        {/* ✅ Toast UI */}
+        {toast.show && (
+          <div className={`toast-box ${toast.type}`}>
+            {toast.message}
+          </div>
+        )}
 
         <div className="row">
           {/* LEFT */}
@@ -510,17 +743,15 @@ const Entry = () => {
               <input className="form-control" value={token} readOnly />
             </div>
 
-            {/* Product */}
             <div className="mb-3">
               <label>Product</label>
-
               <Select
                 options={[
+                  { value: "Add New Product", label: "Add New Product" },
                   ...products.map((p) => ({
                     value: p.counter,
                     label: p.counter,
                   })),
-                  { value: "__ADD_NEW__", label: "+ Add New Product" },
                 ]}
                 value={
                   form.product
@@ -533,8 +764,7 @@ const Entry = () => {
               />
             </div>
 
-            {/* New Product */}
-            {form.product === "__ADD_NEW__" && (
+            {form.product === "Add New Product" && (
               <div className="mb-3">
                 <label>New Product</label>
                 <input
@@ -553,7 +783,6 @@ const Entry = () => {
               </div>
             )}
 
-            {/* Weight */}
             <div className="mb-3">
               <label>Issued Weight</label>
               <input
@@ -565,7 +794,6 @@ const Entry = () => {
               />
             </div>
 
-            {/* Date */}
             <div className="mb-3">
               <label>Date</label>
               <input
@@ -576,7 +804,6 @@ const Entry = () => {
               />
             </div>
 
-            {/* Remark */}
             <div className="mb-3">
               <label>Remark</label>
               <textarea
@@ -587,116 +814,41 @@ const Entry = () => {
               />
             </div>
 
-           
-
-            {/* 🎥 Camera */}
-            {/* <div className="mb-3">
-              <label>Camera Capture</label>
-
-              {!showCamera ? (
-                <button
-                  className="btn btn-secondary w-100"
-                  onClick={() => setShowCamera(true)}
-                >
-                  Open Camera
-                </button>
-              ) : (
-                <>
-                  <Webcam
-                    ref={webcamRef}
-                    screenshotFormat="image/jpeg"
-                    style={{ width: "100%" }}
-                  />
-
-                  <button
-                    className="btn btn-success mt-2 w-100"
-                    onClick={captureImage}
-                  >
-                    Capture
-                  </button>
-
-                  <button
-                    className="btn btn-danger mt-2 w-100"
-                    onClick={() => setShowCamera(false)}
-                  >
-                    Close
-                  </button>
-                </>
-              )
-              }
-            </div> */}
-
-            <div className="mb-3">
-              <label>Camera</label>
-              <button
-                className="btn btn-secondary w-100"
-                // onClick={() => setShowCamera(true)}
-                onClick={() => {
-                  setShowCamera(true);
-                  setPreview(null);
-                  setImage(null);
-                }}
-              >
-                Open Camera
-              </button>
-            </div>
-
-             {/* 📁 Upload */}
             <div className="mb-3">
               <label>Upload Image</label>
-              <input
-                type="file"
-                accept="image/*"
-                className="form-control"
-                onChange={handleImage}
-              />
+              <div className="d-flex gap-2 align-items-center">
+                <button
+                  className="btn btn-sm"
+                  onClick={() => {
+                    setShowCamera(true);
+                    setPreview(null);
+                    setImage(null);
+                  }}
+                >
+                 <i class="bi bi-camera-fill camIcon"></i>
+                </button>
+
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="form-control"
+                  onChange={handleImage}
+                />
+              </div>
             </div>
-            
           </div>
 
           {/* RIGHT */}
-          {/* <div className="col-md-6 text-center">
-            <h6>Preview</h6>
-
-            {preview ? (
-              <img
-                src={preview}
-                alt="preview"
-                style={{ width: "100%", maxHeight: "300px" }}
-              />
-            ) : (
-              <div className="border p-5">No Image</div>
-            )}
-
-            <button
-              className="btn btn-primary w-100 mt-3"
-              onClick={handleSubmit}
-            >
-              Submit
-            </button>
-          </div> */}
-
           <div className="col-md-6 text-center">
             <h6>Preview</h6>
 
-            {/* 🎥 CAMERA VIEW */}
-           {/* {showCamera ? (
-              <div className="d-flex align-items-start gap-3">
-                
-                <Webcam
-                  ref={webcamRef}
-                  screenshotFormat="image/jpeg"
-                  style={{
-                    width: "80%",
-                    maxHeight: "420px",
-                    objectFit: "cover",
-                    borderRadius: "10px"
-                  }}
-                />
+            {showCamera ? (
+              <div className="webcam-container">
+                <Webcam ref={webcamRef} screenshotFormat="image/jpeg" />
 
-                <div className="d-flex flex-column justify-content-start w-40">
+                <div className="webcam-buttons">
                   <button
-                    className="btn btn-success mb-2"
+                    className="btn btn-success"
                     onClick={captureImage}
                   >
                     Capture
@@ -709,38 +861,8 @@ const Entry = () => {
                     Close
                   </button>
                 </div>
-
               </div>
-            ) : preview ? ( */}
-            {showCamera ? (
-  <div className="webcam-container">
-
-    {/* 🎥 Webcam */}
-    <Webcam
-      ref={webcamRef}
-      screenshotFormat="image/jpeg"
-    />
-
-    {/* 🎛️ Buttons BELOW */}
-    <div className="webcam-buttons">
-      <button
-        className="btn btn-success"
-        onClick={captureImage}
-      >
-        Capture
-      </button>
-
-      <button
-        className="btn btn-danger"
-        onClick={() => setShowCamera(false)}
-      >
-        Close
-      </button>
-    </div>
-
-  </div>
-) : preview ? (
-              /* 🖼️ IMAGE PREVIEW */
+            ) : preview ? (
               <img
                 src={preview}
                 alt="preview"
@@ -751,7 +873,6 @@ const Entry = () => {
                 }}
               />
             ) : (
-              /* EMPTY STATE */
               <div className="border p-5 text-muted">
                 No Image Selected
               </div>
@@ -764,8 +885,6 @@ const Entry = () => {
               Submit
             </button>
           </div>
-
-
         </div>
       </div>
     </div>
