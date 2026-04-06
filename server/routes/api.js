@@ -49,8 +49,6 @@ router.post("/login", async (req, res) => {
     }
 });
 
-
-
 ///       getToken
 
 router.get("/getToken", async (req, res) => {
@@ -62,10 +60,10 @@ router.get("/getToken", async (req, res) => {
 
     if (result.recordset.length > 0) {
       const lastToken = result.recordset[0].TransferID; // ✅ Access via recordset
-      const num = parseInt(lastToken.replace("transfer", "")) + 1;
-      res.json({ token: "transfer" + num });
+      const num = parseInt(lastToken.replace("TR", "")) + 1;
+      res.json({ token: "TR" + num });
     } else {
-      res.json({ token: "transfer1" });
+      res.json({ token: "TR1" });
     }
 
   } catch (err) {
@@ -97,18 +95,50 @@ router.get("/getProducts", async (req, res) => {
 // new product
 
 // POST /addProduct
+// router.post("/addProduct", async (req, res) => {
+//   const { name } = req.body;
+//   if (!name) return res.status(400).json({ message: "Name is required" });
+
+//   try {
+//     const pool = await getConnection();
+//     await pool
+//       .request()
+//       .input("name", name.toUpperCase())
+//       .query(`INSERT INTO productMaster (counter) VALUES (@name)`);
+
+//     res.json({ message: "Product added successfully" });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// });
 router.post("/addProduct", async (req, res) => {
   const { name } = req.body;
   if (!name) return res.status(400).json({ message: "Name is required" });
 
   try {
     const pool = await getConnection();
+
+    const productName = name.toUpperCase();
+
+    // 🔍 Check if already exists
+    const check = await pool
+      .request()
+      .input("name", productName)
+      .query(`SELECT COUNT(*) as count FROM productMaster WHERE counter = @name`);
+
+    if (check.recordset[0].count > 0) {
+      return res.status(400).json({ message: "Product already exists" });
+    }
+
+    // ✅ Insert if not exists
     await pool
       .request()
-      .input("name", name.toUpperCase())
+      .input("name", productName)
       .query(`INSERT INTO productMaster (counter) VALUES (@name)`);
 
     res.json({ message: "Product added successfully" });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
@@ -189,7 +219,8 @@ router.get("/inventoryEntries", async (req, res) => {
 		si.receivedDate,
 		si.completedDate,
         si.createdBy,
-        si.remarks
+        si.remarks,
+        si.rejectRemark
       FROM studioInventory si
 	  join statusmasterstudio smaster on smaster.statuscode =  si.status
     WHERE si.CreatedDate >= @fromDate 
@@ -263,7 +294,8 @@ router.get("/TransferedEntries", async (req, res) => {
 		si.receivedDate,
 		si.completedDate,
         si.createdBy,
-        si.remarks
+        si.remarks,
+        si.rejectRemark
       FROM studioInventory si
 	  join statusmasterstudio smaster on smaster.statuscode =  si.status
     WHERE si.CreatedDate >= @fromDate 
@@ -305,14 +337,55 @@ res.json(data);
 
 // Update status 
 
+// router.post("/updateStatus", async (req, res) => {
+//   const { id, status, remarks } = req.body;
+
+//   if (!id || !status) {
+//     return res.status(400).json({ message: "ID and status are required" });
+//   }
+
+//   // Map status names to numeric codes
+//   const statusMap = {
+//     TRANSFER: { code: 1, column: "transferedDate" },
+//     REJECT: { code: 2, column: "receivedDate" },
+//     RECEIVE: { code: 3, column: "receivedDate" },
+//     COMPLETE: { code: 4, column: "completedDate" },
+//   };
+
+//   const statusInfo = statusMap[status.toUpperCase()]; // ensure case-insensitive
+
+//   if (!statusInfo) {
+//     return res.status(400).json({ message: "Invalid status value" });
+//   }
+
+//   try {
+//     const pool = await getConnection();
+//     const now = new Date();
+
+//     await pool
+//       .request()
+//       .input("id", id)
+//       .input("status", statusInfo.code)
+//       .query(`
+//         UPDATE studioInventory 
+//         SET status = @status, ${statusInfo.column} = getdate()
+//         WHERE id = @id
+//       `);
+
+//     res.json({ message: "Status and timestamp updated successfully" });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// });
+
 router.post("/updateStatus", async (req, res) => {
-  const { id, status } = req.body;
+  const { id, status, remarks } = req.body;
 
   if (!id || !status) {
     return res.status(400).json({ message: "ID and status are required" });
   }
 
-  // Map status names to numeric codes
   const statusMap = {
     TRANSFER: { code: 1, column: "transferedDate" },
     REJECT: { code: 2, column: "receivedDate" },
@@ -320,7 +393,7 @@ router.post("/updateStatus", async (req, res) => {
     COMPLETE: { code: 4, column: "completedDate" },
   };
 
-  const statusInfo = statusMap[status.toUpperCase()]; // ensure case-insensitive
+  const statusInfo = statusMap[status.toUpperCase()];
 
   if (!statusInfo) {
     return res.status(400).json({ message: "Invalid status value" });
@@ -328,19 +401,33 @@ router.post("/updateStatus", async (req, res) => {
 
   try {
     const pool = await getConnection();
-    const now = new Date();
 
-    await pool
+    const request = pool
       .request()
       .input("id", id)
-      .input("status", statusInfo.code)
-      .query(`
-        UPDATE studioInventory 
-        SET status = @status, ${statusInfo.column} = getdate()
-        WHERE id = @id
-      `);
+      .input("status", statusInfo.code);
 
-    res.json({ message: "Status and timestamp updated successfully" });
+    let query = `
+      UPDATE studioInventory 
+      SET status = @status, ${statusInfo.column} = GETDATE()
+    `;
+
+    // ✅ Only for REJECT → add remarks
+    if (status.toUpperCase() === "REJECT") {
+      if (!remarks || remarks.trim() === "") {
+        return res.status(400).json({ message: "Remarks required for reject" });
+      }
+
+      request.input("remarks", remarks);
+      query += `, rejectRemark = @remarks`;
+    }
+
+    query += ` WHERE id = @id`;
+
+    await request.query(query);
+
+    res.json({ message: "Status updated successfully" });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
