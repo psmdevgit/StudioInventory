@@ -39,16 +39,34 @@ const showToast = (message, type = "success") => {
 };
 
 
+// const formatDateTime = (date) => {
+//   if (!date) return "-";
+//   return new Date(date).toLocaleString("en-GB", {
+//     day: "2-digit",
+//     month: "2-digit",
+//     year: "numeric",
+//     hour: "2-digit",
+//     minute: "2-digit",
+//     hour12: true
+//   });
+// };
+
 const formatDateTime = (date) => {
   if (!date) return "-";
-  return new Date(date).toLocaleString("en-GB", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true
-  });
+
+  // Remove Z and milliseconds
+  const clean = date.replace("Z", "").split(".")[0];
+
+  const [d, t] = clean.split("T");
+  const [year, month, day] = d.split("-");
+  const [hour, minute] = t.split(":");
+
+  let h = parseInt(hour);
+  const ampm = h >= 12 ? "pm" : "am";
+
+  h = h % 12 || 12;
+
+  return `${day}/${month}/${year}, ${String(h).padStart(2, "0")}:${minute} ${ampm}`;
 };
 
 

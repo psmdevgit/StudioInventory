@@ -848,7 +848,7 @@ const Entry = () => {
 
                 <div className="webcam-buttons">
                   <button
-                    className="btn btn-success"
+                    className="btn btn-success me-2"
                     onClick={captureImage}
                   >
                     Capture
